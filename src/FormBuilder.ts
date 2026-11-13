@@ -2,36 +2,52 @@ import type { TagAttributes } from "./Tag.js";
 
 export type Template = Record<string, unknown>;
 
-export type InputOptions = TagAttributes & {
-  as?: "input" | "textarea";
-};
-
-// Внутренняя структура формы не зависит от способа отображения:
-// HTML строит отдельный рендерер, их может быть несколько
-export interface FieldElement {
-  type: "input" | "textarea";
+interface FieldData {
   name: string;
   label: string;
   value: string;
   attributes: TagAttributes;
 }
 
-export interface SubmitElement {
-  type: "submit";
+interface SubmitData {
   value: string;
 }
 
-export type FormElement = FieldElement | SubmitElement;
+// Данные каждого типа input. Новый тип добавляется одной строкой
+export interface InputTypes {
+  text: FieldData;
+  textarea: FieldData;
+  submit: SubmitData;
+}
+
+export type InputType = keyof InputTypes;
+
+export type Input<T extends InputType = InputType> = {
+  [K in T]: { type: K } & InputTypes[K];
+}[T];
+
+// Внутреннее представление формы не зависит от способа отображения
+export interface Form {
+  attributes: TagAttributes;
+  inputs: readonly Input[];
+}
+
+export type InputOptions = TagAttributes & {
+  as?: "text" | "textarea";
+};
 
 const capitalize = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 export default class FormBuilder {
-  readonly template: Template;
+  private readonly template: Template;
 
-  readonly elements: FormElement[] = [];
+  private readonly attributes: TagAttributes;
 
-  constructor(template: Template) {
+  private inputs: readonly Input[] = [];
+
+  constructor(template: Template, attributes: TagAttributes) {
     this.template = template;
+    this.attributes = attributes;
   }
 
   private getValue(name: string): string {
@@ -42,10 +58,14 @@ export default class FormBuilder {
     return String(this.template[name]);
   }
 
-  input(name: string, options: InputOptions = {}): void {
-    const { as = "input", ...attributes } = options;
+  private addInput(input: Input): void {
+    this.inputs = [...this.inputs, input];
+  }
 
-    this.elements.push({
+  input(name: string, options: InputOptions = {}): void {
+    const { as = "text", ...attributes } = options;
+
+    this.addInput({
       type: as,
       name,
       label: capitalize(name),
@@ -55,6 +75,10 @@ export default class FormBuilder {
   }
 
   submit(value = "Save"): void {
-    this.elements.push({ type: "submit", value });
+    this.addInput({ type: "submit", value });
+  }
+
+  getForm(): Form {
+    return { attributes: this.attributes, inputs: this.inputs };
   }
 }

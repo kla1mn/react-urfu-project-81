@@ -2,9 +2,10 @@ export { default } from "./HexletCode.js";
 export type { FormCallback, FormOptions } from "./HexletCode.js";
 export type {
   default as FormBuilder,
-  FieldElement,
-  FormElement,
+  Form,
+  Input,
   InputOptions,
-  SubmitElement,
+  InputType,
+  InputTypes,
   Template,
 } from "./FormBuilder.js";

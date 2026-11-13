@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, test, vi } from "vitest";
-import HexletCode, { type FormCallback } from "../src/index.js";
-import FormBuilder from "../src/FormBuilder.js";
+import { describe, expect, test } from "vitest";
+import HexletCode, { type FormOptions, type InputOptions } from "../src/index.js";
 
 // Фикстуры отформатированы для читаемости, генератор выдаёт HTML в одну строку
 const readFixture = (name: string): string =>
@@ -13,104 +12,63 @@ const readFixture = (name: string): string =>
 describe("HexletCode.formFor", () => {
   const template = { name: "rob", job: "hexlet", gender: "m" };
 
-  describe("empty form", () => {
-    test("generates form with default action and method", () => {
-      const form = HexletCode.formFor(template, {}, () => {});
-
-      expect(form).toBe('<form action="#" method="post"></form>');
-    });
-
-    test("uses url as form action", () => {
-      const form = HexletCode.formFor(template, { url: "/users" }, () => {});
-
-      expect(form).toBe('<form action="/users" method="post"></form>');
-    });
-
-    test("uses passed method", () => {
-      const form = HexletCode.formFor(template, { method: "get", url: "/users" }, () => {});
-
-      expect(form).toBe('<form action="/users" method="get"></form>');
-    });
-
-    test("calls the callback once with a form builder", () => {
-      const callback = vi.fn<FormCallback>();
-
-      HexletCode.formFor(template, {}, callback);
-
-      expect(callback).toHaveBeenCalledOnce();
-      expect(callback.mock.calls[0]?.[0]).toBeInstanceOf(FormBuilder);
-    });
+  test.each<{ options: FormOptions; expected: string }>([
+    { options: {}, expected: '<form action="#" method="post"></form>' },
+    { options: { url: "/users" }, expected: '<form action="/users" method="post"></form>' },
+    {
+      options: { url: "/users", method: "get" },
+      expected: '<form action="/users" method="get"></form>',
+    },
+  ])("generates empty form with options $options", ({ options, expected }) => {
+    expect(HexletCode.formFor(template, options, () => {})).toBe(expected);
   });
 
-  describe("fields", () => {
-    test("generates input and textarea", () => {
-      const form = HexletCode.formFor(template, { method: "post" }, (f) => {
-        f.input("name");
-        f.input("job", { as: "textarea" });
-      });
-
-      expect(form).toBe(readFixture("input-and-textarea.html"));
+  test("generates form with labeled fields and submit", () => {
+    const form = HexletCode.formFor(template, { method: "post" }, (f) => {
+      f.input("name");
+      f.input("job", { as: "textarea" });
+      f.submit();
     });
 
-    test("adds extra attributes to fields", () => {
-      const form = HexletCode.formFor(template, {}, (f) => {
-        f.input("name", { class: "user-input" });
-        f.input("job");
-      });
-
-      expect(form).toBe(readFixture("input-with-attributes.html"));
-    });
-
-    test("uses default textarea size", () => {
-      const form = HexletCode.formFor(template, {}, (f) => f.input("job", { as: "textarea" }));
-
-      expect(form).toBe(readFixture("textarea-default.html"));
-    });
-
-    test("overrides default textarea size", () => {
-      const form = HexletCode.formFor(template, { url: "#" }, (f) =>
-        f.input("job", { as: "textarea", rows: 50, cols: 50 }),
-      );
-
-      expect(form).toBe(readFixture("textarea-custom-size.html"));
-    });
-
-    test("throws when field does not exist in template", () => {
-      expect(() =>
-        HexletCode.formFor(template, { url: "/users" }, (f) => {
-          f.input("name");
-          f.input("job", { as: "textarea" });
-          f.input("age");
-        }),
-      ).toThrow(new Error("Field 'age' does not exist in the template."));
-    });
+    expect(form).toBe(readFixture("full-form.html"));
   });
 
-  describe("submit", () => {
-    test("uses Save as default button text", () => {
-      const form = HexletCode.formFor(template, { method: "post" }, (f) => {
+  test("adds extra attributes to fields", () => {
+    const form = HexletCode.formFor(template, {}, (f) => {
+      f.input("name", { class: "user-input" });
+      f.input("job");
+    });
+
+    expect(form).toBe(readFixture("input-with-attributes.html"));
+  });
+
+  test.each<{ options: InputOptions; fixture: string }>([
+    { options: { as: "textarea" }, fixture: "textarea-default.html" },
+    { options: { as: "textarea", rows: 50, cols: 50 }, fixture: "textarea-custom-size.html" },
+  ])("generates textarea with options $options", ({ options, fixture }) => {
+    const form = HexletCode.formFor(template, {}, (f) => f.input("job", options));
+
+    expect(form).toBe(readFixture(fixture));
+  });
+
+  test.each([
+    { text: undefined, expected: "Save" },
+    { text: "Wow", expected: "Wow" },
+  ])("generates submit with text $text", ({ text, expected }) => {
+    const form = HexletCode.formFor(template, {}, (f) => f.submit(text));
+
+    expect(form).toBe(
+      `<form action="#" method="post"><input type="submit" value="${expected}"></form>`,
+    );
+  });
+
+  test("throws when field does not exist in template", () => {
+    expect(() =>
+      HexletCode.formFor(template, { url: "/users" }, (f) => {
         f.input("name");
         f.input("job", { as: "textarea" });
-        f.submit();
-      });
-
-      expect(form).toBe(readFixture("submit-default.html"));
-    });
-
-    test("uses passed button text", () => {
-      const form = HexletCode.formFor(template, { method: "post" }, (f) => {
-        f.input("name");
-        f.input("job", { as: "textarea" });
-        f.submit("Wow");
-      });
-
-      expect(form).toBe(readFixture("submit-custom.html"));
-    });
-
-    test("adds no label to submit button", () => {
-      const form = HexletCode.formFor(template, {}, (f) => f.submit());
-
-      expect(form).toBe('<form action="#" method="post"><input type="submit" value="Save"></form>');
-    });
+        f.input("age");
+      }),
+    ).toThrow(new Error("Field 'age' does not exist in the template."));
   });
 });

@@ -1,26 +1,29 @@
-import type { FieldElement, FormElement } from "./FormBuilder.js";
-import Tag, { type TagAttributes } from "./Tag.js";
+import type { Form, Input, InputType } from "./FormBuilder.js";
+import Tag from "./Tag.js";
 
-const textareaDefaults = { cols: 20, rows: 40 };
-
-const renderField = ({ type, name, value, attributes }: FieldElement): Tag => {
-  if (type === "textarea") {
-    return new Tag("textarea", { ...textareaDefaults, ...attributes, name }, value);
-  }
-
-  return new Tag("input", { name, type: "text", value, ...attributes });
+type Renderers = {
+  [T in InputType]: (input: Input<T>) => Tag[];
 };
 
-const renderElement = (element: FormElement): Tag[] => {
-  if (element.type === "submit") {
-    return [new Tag("input", { type: "submit", value: element.value })];
-  }
+const renderLabel = (name: string, label: string): Tag => new Tag("label", { for: name }, label);
 
-  return [new Tag("label", { for: element.name }, element.label), renderField(element)];
+// HTML для каждого типа input: новый тип — новая запись в этом объекте
+const renderers: Renderers = {
+  text: ({ name, label, value, attributes }) => [
+    renderLabel(name, label),
+    new Tag("input", { name, type: "text", value, ...attributes }),
+  ],
+  textarea: ({ name, label, value, attributes }) => [
+    renderLabel(name, label),
+    new Tag("textarea", { cols: 20, rows: 40, ...attributes, name }, value),
+  ],
+  submit: ({ value }) => [new Tag("input", { type: "submit", value })],
 };
 
-const renderHtml = (attributes: TagAttributes, elements: FormElement[]): string => {
-  const body = elements.flatMap(renderElement).join("");
+const renderInput = <T extends InputType>(input: Input<T>): Tag[] => renderers[input.type](input);
+
+const renderHtml = ({ attributes, inputs }: Form): string => {
+  const body = inputs.flatMap((input) => renderInput(input)).join("");
 
   return new Tag("form", attributes, body).toString();
 };
