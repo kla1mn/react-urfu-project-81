@@ -1,0 +1,40 @@
+{
+  "name": "@hexlet/code",
+  "version": "0.1.0",
+  "description": "Form generator for site templates",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint && oxfmt --check",
+    "lint-fix": "oxfmt && oxlint --fix",
+    "test": "vitest run",
+    "test-coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kla1mn/react-urfu-project-81.git"
+  },
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/kla1mn/react-urfu-project-81/issues"
+  },
+  "homepage": "https://github.com/kla1mn/react-urfu-project-81#readme",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "oxfmt": "^0.76.0",
+    "oxlint": "^1.93.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
