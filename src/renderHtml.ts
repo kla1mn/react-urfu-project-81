@@ -1,11 +1,12 @@
-import type { Form, Input, InputType } from "./FormBuilder.js";
+import type { Form, Input, InputType, Label } from "./FormBuilder.js";
 import Tag from "./Tag.js";
 
 type Renderers = {
   [T in InputType]: (input: Input<T>) => Tag[];
 };
 
-const renderLabel = (name: string, label: string): Tag => new Tag("label", { for: name }, label);
+const renderLabel = (name: string, { text, attributes }: Label): Tag =>
+  new Tag("label", { for: name, ...attributes }, text);
 
 // HTML для каждого типа input: новый тип — новая запись в этом объекте
 const renderers: Renderers = {

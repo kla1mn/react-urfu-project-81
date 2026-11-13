@@ -13,11 +13,11 @@ describe("HexletCode.formFor", () => {
   const template = { name: "rob", job: "hexlet", gender: "m" };
 
   test.each<{ options: FormOptions; expected: string }>([
-    { options: {}, expected: '<form action="#" method="post"></form>' },
-    { options: { url: "/users" }, expected: '<form action="/users" method="post"></form>' },
+    { options: {}, expected: '<form method="post" action="#"></form>' },
+    { options: { url: "/users" }, expected: '<form method="post" action="/users"></form>' },
     {
       options: { url: "/users", method: "get" },
-      expected: '<form action="/users" method="get"></form>',
+      expected: '<form method="get" action="/users"></form>',
     },
   ])("generates empty form with options $options", ({ options, expected }) => {
     expect(HexletCode.formFor(template, options, () => {})).toBe(expected);
@@ -42,6 +42,15 @@ describe("HexletCode.formFor", () => {
     expect(form).toBe(readFixture("input-with-attributes.html"));
   });
 
+  test("uses label text and attributes from options", () => {
+    const form = HexletCode.formFor(template, {}, (f) => {
+      f.input("name", { label: "User", labelHtml: { class: "form-label", id: "name-label" } });
+      f.submit("Ok");
+    });
+
+    expect(form).toBe(readFixture("label-attributes.html"));
+  });
+
   test.each<{ options: InputOptions; fixture: string }>([
     { options: { as: "textarea" }, fixture: "textarea-default.html" },
     { options: { as: "textarea", rows: 50, cols: 50 }, fixture: "textarea-custom-size.html" },
@@ -58,7 +67,7 @@ describe("HexletCode.formFor", () => {
     const form = HexletCode.formFor(template, {}, (f) => f.submit(text));
 
     expect(form).toBe(
-      `<form action="#" method="post"><input type="submit" value="${expected}"></form>`,
+      `<form method="post" action="#"><input type="submit" value="${expected}"></form>`,
     );
   });
 

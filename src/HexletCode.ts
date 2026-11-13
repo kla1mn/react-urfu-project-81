@@ -11,7 +11,7 @@ export type FormCallback = (form: FormBuilder) => void;
 export default class HexletCode {
   static formFor(template: Template, options: FormOptions, callback: FormCallback): string {
     const { url = "#", method = "post" } = options;
-    const builder = new FormBuilder(template, { action: url, method });
+    const builder = new FormBuilder(template, { method, action: url });
 
     callback(builder);
 

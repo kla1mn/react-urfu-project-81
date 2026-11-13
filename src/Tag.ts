@@ -1,4 +1,6 @@
-export type TagAttributes = Record<string, string | number>;
+export type AttributeValue = string | number;
+
+export type TagAttributes = Record<string, AttributeValue>;
 
 const singleTags = new Set([
   "area",
