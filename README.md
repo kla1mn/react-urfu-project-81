@@ -46,14 +46,23 @@ const template = { name: "rob", job: "hexlet", gender: "m" };
 const form = HexletCode.formFor(template, { url: "/users" }, (f) => {
   f.input("name", { class: "user-input" });
   f.input("job", { as: "textarea", rows: 50 });
+  f.submit("Wow");
 });
 
 console.log(form);
-// <form action="/users" method="post"><input name="name" type="text" value="rob" class="user-input"><textarea cols="20" rows="50" name="job">hexlet</textarea></form>
+// Переносы строк добавлены для читаемости, генератор выдаёт HTML в одну строку:
+// <form action="/users" method="post">
+//   <label for="name">Name</label>
+//   <input name="name" type="text" value="rob" class="user-input">
+//   <label for="job">Job</label>
+//   <textarea cols="20" rows="50" name="job">hexlet</textarea>
+//   <input type="submit" value="Wow">
+// </form>
 ```
 
 - `formFor(template, options, callback)`: `options.url` задаёт `action` (по умолчанию `#`), `options.method` задаёт метод (по умолчанию `post`).
-- `f.input(name, options)` добавляет поле со значением из `template`. По умолчанию это `<input type="text">`, а с `as: "textarea"` — `<textarea>` размером `cols="20" rows="40"`. Остальные опции становятся атрибутами поля и могут переопределить значения по умолчанию.
+- `f.input(name, options)` добавляет поле со значением из `template`. По умолчанию это `<input type="text">`, а с `as: "textarea"` — `<textarea>` размером `cols="20" rows="40"`. Остальные опции становятся атрибутами поля и могут переопределить значения по умолчанию. Перед каждым полем выводится `<label>` с именем поля, начинающимся с заглавной буквы.
+- `f.submit(value)` добавляет кнопку отправки `<input type="submit">` с текстом `value` (по умолчанию `Save`).
 - Если поля нет в `template`, выбрасывается ошибка `Field '<name>' does not exist in the template.`
 
 ---

@@ -1,5 +1,5 @@
 import FormBuilder, { type Template } from "./FormBuilder.js";
-import Tag from "./Tag.js";
+import renderHtml from "./renderHtml.js";
 
 export interface FormOptions {
   url?: string;
@@ -15,6 +15,6 @@ export default class HexletCode {
 
     callback(builder);
 
-    return new Tag("form", { action: url, method }, builder.fields.join("")).toString();
+    return renderHtml({ action: url, method }, builder.elements);
   }
 }

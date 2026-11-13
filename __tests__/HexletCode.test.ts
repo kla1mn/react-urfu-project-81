@@ -85,4 +85,32 @@ describe("HexletCode.formFor", () => {
       ).toThrow(new Error("Field 'age' does not exist in the template."));
     });
   });
+
+  describe("submit", () => {
+    test("uses Save as default button text", () => {
+      const form = HexletCode.formFor(template, { method: "post" }, (f) => {
+        f.input("name");
+        f.input("job", { as: "textarea" });
+        f.submit();
+      });
+
+      expect(form).toBe(readFixture("submit-default.html"));
+    });
+
+    test("uses passed button text", () => {
+      const form = HexletCode.formFor(template, { method: "post" }, (f) => {
+        f.input("name");
+        f.input("job", { as: "textarea" });
+        f.submit("Wow");
+      });
+
+      expect(form).toBe(readFixture("submit-custom.html"));
+    });
+
+    test("adds no label to submit button", () => {
+      const form = HexletCode.formFor(template, {}, (f) => f.submit());
+
+      expect(form).toBe('<form action="#" method="post"><input type="submit" value="Save"></form>');
+    });
+  });
 });

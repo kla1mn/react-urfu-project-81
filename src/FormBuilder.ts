@@ -1,4 +1,4 @@
-import Tag, { type TagAttributes } from "./Tag.js";
+import type { TagAttributes } from "./Tag.js";
 
 export type Template = Record<string, unknown>;
 
@@ -6,12 +6,29 @@ export type InputOptions = TagAttributes & {
   as?: "input" | "textarea";
 };
 
-const textareaDefaults = { cols: 20, rows: 40 };
+// Внутренняя структура формы не зависит от способа отображения:
+// HTML строит отдельный рендерер, их может быть несколько
+export interface FieldElement {
+  type: "input" | "textarea";
+  name: string;
+  label: string;
+  value: string;
+  attributes: TagAttributes;
+}
+
+export interface SubmitElement {
+  type: "submit";
+  value: string;
+}
+
+export type FormElement = FieldElement | SubmitElement;
+
+const capitalize = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 export default class FormBuilder {
   readonly template: Template;
 
-  readonly fields: Tag[] = [];
+  readonly elements: FormElement[] = [];
 
   constructor(template: Template) {
     this.template = template;
@@ -26,14 +43,18 @@ export default class FormBuilder {
   }
 
   input(name: string, options: InputOptions = {}): void {
-    const { as, ...attributes } = options;
-    const value = this.getValue(name);
+    const { as = "input", ...attributes } = options;
 
-    if (as === "textarea") {
-      this.fields.push(new Tag("textarea", { ...textareaDefaults, ...attributes, name }, value));
-      return;
-    }
+    this.elements.push({
+      type: as,
+      name,
+      label: capitalize(name),
+      value: this.getValue(name),
+      attributes,
+    });
+  }
 
-    this.fields.push(new Tag("input", { name, type: "text", value, ...attributes }));
+  submit(value = "Save"): void {
+    this.elements.push({ type: "submit", value });
   }
 }
