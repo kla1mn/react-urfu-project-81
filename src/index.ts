@@ -1,3 +1,3 @@
-// Entry point of the form generator library.
-// The implementation is added in the next project steps (test-first).
-export {};
+export { default } from "./HexletCode.js";
+export type { FormCallback, FormOptions } from "./HexletCode.js";
+export type { default as FormBuilder, InputOptions, Template } from "./FormBuilder.js";
